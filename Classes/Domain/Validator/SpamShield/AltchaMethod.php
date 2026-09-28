@@ -11,13 +11,15 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  *
  * Extends the AbstractMethod class to implement Altcha-based spam protection.
  * This class handles checking the provided spam protection field, validating its solution,
- * and processing configurations such as HMAC key, maximum number, and expiration time.
+ * and processing configurations such as HMAC key, complexity, and expiration time.
  */
 class AltchaMethod extends AbstractMethod
 {
     protected string $hmacKey = '';
 
-    protected int $maxNumber = 0;
+    protected int $minimumComplexity = 0;
+
+    protected int $maximumComplexity = 0;
 
     protected int $expires = 0;
 
@@ -71,12 +73,8 @@ class AltchaMethod extends AbstractMethod
 
         //$this->hmacKey = $this->getHmacKey($this->arguments['settings']);
 
-        if (isset( $this->settings['settings']['spamshield']['methods'][2025]['configuration']['maxNumber']) &&
-            (int) $this->settings['settings']['spamshield']['methods'][2025]['configuration']['maxNumber'] > 0) {
-            $this->maxNumber = (int) $this->settings['settings']['spamshield']['methods'][2025]['configuration']['maxNumber'];
-        } else {
-            $this->maxNumber = 1000000;
-        }
+        $this->minimumComplexity = (int) ($this->settings['spamshield']['methods'][2025]['configuration']['minimumComplexity'] ?? 0) ?: 5000;
+        $this->maximumComplexity = (int) ($this->settings['spamshield']['methods'][2025]['configuration']['maximumComplexity'] ?? 0) ?: 15000;
 
         if (isset( $this->settings['settings']['spamshield']['methods'][2025]['configuration']['expires']) &&
             (int) $this->settings['settings']['spamshield']['methods'][2025]['configuration']['expires'] > 0) {
@@ -85,16 +83,14 @@ class AltchaMethod extends AbstractMethod
             $this->expires = 86400;
         }
 
-        $decodedPayload = base64_decode($value);
-        $payload = json_decode($decodedPayload, true);
-
         $altchaService = GeneralUtility::makeInstance(
             AltchaService::class,
             $this->hmacKey,
-            $this->maxNumber,
+            $this->minimumComplexity,
+            $this->maximumComplexity,
             $this->expires);
 
-        $checkResult = $altchaService->verifySolution($payload);
+        $checkResult = $altchaService->verifySolution($value);
         if ($checkResult) {
             $answer->setValue('valid');
         } else {

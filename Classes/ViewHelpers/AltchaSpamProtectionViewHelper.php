@@ -1,7 +1,6 @@
 <?php
 namespace Fnn\FnnPowermailAltcha\ViewHelpers;
 
-use AltchaOrg\Altcha\ChallengeOptions;
 use Fnn\FnnPowermailAltcha\Service\AltchaService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
@@ -10,7 +9,9 @@ class AltchaSpamProtectionViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\A
 {
     protected string $hmacKey = '';
 
-    protected int $maxNumber = 0;
+    protected int $minimumComplexity = 0;
+
+    protected int $maximumComplexity = 0;
 
     protected int $expires = 0;
 
@@ -32,9 +33,9 @@ class AltchaSpamProtectionViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\A
      * a spam shield challenge along with corresponding language labels.
      *
      * The method extracts and validates certain configurations,
-     * such as hmacKey, maxNumber, expiration time, and pid from the given
+     * such as hmacKey, complexity, expiration time, and pid from the given
      * settings, initializing default values if necessary. Language labels
-     * for the challenge may also be configured and returned.
+     * configured in TypoScript are returned as overrides for the widget translations.
      *
      * @return array An array containing the generated challenge (`altchaChallenge`)
      *               and optional translated language labels (`langLabels`).
@@ -44,12 +45,8 @@ class AltchaSpamProtectionViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\A
 
         $this->hmacKey = $this->getHmacKey($this->arguments['settings']);
 
-        if (isset($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['maxNumber']) &&
-            (int)$this->arguments['settings']['spamshield']['methods'][2025]['configuration']['maxNumber'] > 0) {
-            $this->maxNumber = (int)$this->arguments['settings']['spamshield']['methods'][2025]['configuration']['maxNumber'];
-        } else {
-            $this->maxNumber = 1000000;
-        }
+        $this->minimumComplexity = (int) ($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['minimumComplexity'] ?? 0) ?: 5000;
+        $this->maximumComplexity = (int) ($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['maximumComplexity'] ?? 0) ?: 15000;
 
         if (isset($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['expires']) &&
             (int)$this->arguments['settings']['spamshield']['methods'][2025]['configuration']['expires'] > 0) {
@@ -63,25 +60,25 @@ class AltchaSpamProtectionViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\A
             $this->pid = (int)$this->arguments['settings']['main']['pid'];
         }
 
-        if (isset($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['labels'])) {
-            $labelKeys = $this->arguments['settings']['spamshield']['methods'][2025]['configuration']['labels'];
-
-            $langLabels = [
-                'error' => LocalizationUtility::translate($labelKeys['error']),
-                'expired' => LocalizationUtility::translate($labelKeys['expired']),
-                'label' => LocalizationUtility::translate($labelKeys['label']),
-                'verified' => LocalizationUtility::translate($labelKeys['verified']),
-                'verifying' => LocalizationUtility::translate($labelKeys['verifying']),
-                'waitAlert' => LocalizationUtility::translate($labelKeys['waitAlert']),
-            ];
+        // Labels are optional overrides of the translations shipped with the widget.
+        // Only labels configured in TypoScript are passed on.
+        $langLabels = [];
+        foreach ($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['labels'] ?? [] as $key => $labelKey) {
+            if (is_string($labelKey) && trim($labelKey) !== '') {
+                $langLabels[$key] = LocalizationUtility::translate($labelKey) ?? $labelKey;
+            }
         }
 
-        $altchaService = GeneralUtility::makeInstance(AltchaService::class,$this->hmacKey, $this->maxNumber, $this->expires, $this->pid);
+        $altchaService = GeneralUtility::makeInstance(AltchaService::class,$this->hmacKey, $this->minimumComplexity, $this->maximumComplexity, $this->expires, $this->pid);
         return [
             'altchaChallenge' => $altchaService->createChallenge(),
-            'langLabels' => $langLabels ?? [],
+            'langLabels' => $langLabels,
             'lifetime' => $this->expires,
             'configuration' => $this->arguments['settings']['spamshield']['methods'][2025]['configuration'],
+            'widgetConfiguration' => [
+                'hideLogo' => (bool) ($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['hideLogo'] ?? false),
+                'hideFooter' => (bool) ($this->arguments['settings']['spamshield']['methods'][2025]['configuration']['hideFooter'] ?? false),
+            ],
             'hmacKey' => $this->hmacKey,
         ];
     }

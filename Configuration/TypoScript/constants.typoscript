@@ -2,8 +2,10 @@ plugin.tx_fnn_powermail_altcha {
     # cat=Powermail Altcha/option/100; type=string; label=hmacKey
     # IMPORTANT: Replace this placeholder with a unique key for security reasons.
     hmacKey = [YOUR_UNIQUE_KEY_HERE]
-    # cat=Powermail Altcha/option/110; type=int+; label=max Number
-    maxNumber = 999999
+    # cat=Powermail Altcha/option/110; type=int+; label=Minimum complexity (PBKDF2 iterations per attempt)
+    minimumComplexity = 5000
+    # cat=Powermail Altcha/option/115; type=int+; label=Maximum complexity (PBKDF2 iterations per attempt)
+    maximumComplexity = 15000
     # cat=Powermail Altcha/option/120; type=int+; label=Expires in seconds. If the value is 0, a challenge is valid for 24 hours.
     expires = 0
     # cat=Powermail Altcha/option/130; type=boolean; label=Hide Altcha logo
@@ -11,19 +13,20 @@ plugin.tx_fnn_powermail_altcha {
     # cat=Powermail Altcha/option/140; type=boolean; label=Hide altcha footer
     hidefooter = 0
     # cat=Powermail Altcha/option/150; type=options[off,onfocus,onload,onsubmit]; label=Validation type
-    validation = load
+    validation = onload
+    # Optional overrides of the widget translations (LLL reference or plain text). Empty = use the translations shipped with the widget.
     labels {
         # cat=Powermail Altcha/label/410; type=string; label=Error label
-        error = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.error
+        error =
         # cat=Powermail Altcha/label/420; type=string; label=Expired label
-        expired = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.expired
+        expired =
         # cat=Powermail Altcha/label/430; type=string; label=Label
-        label = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.label
+        label =
         # cat=Powermail Altcha/label/440; type=string; label=Verified label
-        verified = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.verified
+        verified =
         # cat=Powermail Altcha/label/450; type=string; label=Verifying label
-        verifying = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.verifying
+        verifying =
         # cat=Powermail Altcha/label/460; type=string; label=Wait alert label
-        waitAlert = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.waitAlert
+        waitAlert =
     }
 }

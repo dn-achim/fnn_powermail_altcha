@@ -18,7 +18,7 @@ The visitor then sees the Altcha widget. This additional validation effectively 
 ## Overview
 
 - **Extension-Key:** `fnn_powermail_altcha`
-- **Version:** 12.0.0
+- **Version:** 13.0.0
 - **Author:** 599media Dev-Team (599media GmbH)
 - **License:** MIT
 - **Category:** Service
@@ -55,8 +55,10 @@ plugin.tx_fnn_powermail_altcha {
     **IMPORTANT: For security, you must generate a unique key for your installation and replace the placeholder below.**
     hmacKey = [YOUR_UNIQUE_KEY_HERE]
 
-    # Maximum number for the challenge
-    maxNumber = 999999
+    # Complexity of the challenge (PBKDF2 iterations per attempt).
+    # A random value between minimum and maximum is used for each challenge.
+    minimumComplexity = 5000
+    maximumComplexity = 15000
 
     # Expiry time in seconds (0 = 24 hours)
     expires = 0
@@ -67,17 +69,19 @@ plugin.tx_fnn_powermail_altcha {
     # Hide altcha footer (0 = show, 1 = hide)
     hideFooter = 0
 
-    # Validierungstyp: off, onfocus, onload, onsubmit
-    validation = off
+    # Validation type: off, onfocus, onload, onsubmit
+    validation = onload
 
-    # You can configure Altcha messages yourself at this point.
+    # By default the widget uses its own translations (language taken from <html lang>).
+    # Each label can optionally be overridden with an LLL reference or plain text, e.g.:
+    # label = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.label
     labels {
-        error     = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.error
-        expired   = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.expired
-        label     = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.label
-        verified  = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.verified
-        verifying = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.verifying
-        waitAlert = LLL:EXT:fnn_powermail_altcha/Resources/Private/Language/locallang.xlf:altchaWidget.waitAlert
+        error     =
+        expired   =
+        label     =
+        verified  =
+        verifying =
+        waitAlert =
     }
 }
 ```
@@ -154,7 +158,7 @@ The complete license text of the Altcha library can be found in the file ***Vend
                                      ▼
              ┌────────────────────────────────────────────────┐
              │  AltchaService                                 │
-             │  • generates random number (maxNumber)         │
+             │  • picks random cost (min/maxComplexity)       │
              │  • calculates HMAC signature (hmacKey)         │
              │  • Saves record in DB (Challenge, expires)     │
              │                                                │
@@ -165,7 +169,7 @@ The complete license text of the Altcha library can be found in the file ***Vend
              ┌────────────────────────────────────────────────┐
              │  Browser (Client)                              │
              │  ┌──────────────────────────────────────────┐  │
-             │  │ altcha.min.js:                           │  │
+             │  │ altcha.i18n.min.js (ALTCHA widget v3):   │  │
              │  │  • displays interactive captcha          │  │
              │  │  • User solves task                      │  │
              │  │  • Payload is packed (response)          │  │

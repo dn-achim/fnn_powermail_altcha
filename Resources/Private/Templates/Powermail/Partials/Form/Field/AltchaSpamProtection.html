@@ -1,12 +1,8 @@
 {namespace pa=Fnn\FnnPowermailAltcha\ViewHelpers}
 
-<f:asset.script identifier="powermailAltcha" src="EXT:fnn_powermail_altcha/Resources/Public/JavaScript/altcha.min.js" defer="true" async="true" type="module" />
+<f:asset.script identifier="powermailAltcha" src="EXT:fnn_powermail_altcha/Resources/Public/JavaScript/altcha.i18n.min.js" defer="true" async="true" type="module" />
 
 <f:variable name="altchaConfig" value="{pa:altchaSpamProtection(settings: settings)}" />
-
-<f:variable name="widgetOptions"></f:variable>
-<f:if condition="{altchaConfig.configuration.hideLogo} === '1'"><f:variable name="widgetOptions">{widgetOptions} hidelogo</f:variable></f:if>
-<f:if condition="{altchaConfig.configuration.hideFooter} === '1'"><f:variable name="widgetOptions">{widgetOptions} hidefooter</f:variable></f:if>
 
 <div class="powermail_fieldwrap powermail_fieldwrap_type_altcha powermail_fieldwrap_{field.marker} {field.css} {settings.styles.framework.fieldAndLabelWrappingClasses}">
     <div class="{settings.styles.framework.fieldWrappingClasses}">
@@ -16,11 +12,11 @@
             </f:then>
             <f:else>
                 <altcha-widget
-                        challengejson="{altchaConfig.altchaChallenge -> f:format.json()}"
+                        challenge="{altchaConfig.altchaChallenge -> f:format.json()}"
+                        configuration="{altchaConfig.widgetConfiguration -> f:format.json()}"
                         name="tx_powermail_pi1[field][{field.marker}]"
                         id="tx_powermail_pi1[field][{field.marker}]_widget"
-                        strings="{altchaConfig.langLabels -> f:format.json()}"
-                        {widgetOptions}
+                        <f:if condition="{altchaConfig.langLabels}">data-altcha-i18n="{altchaConfig.langLabels -> f:format.json()}"</f:if>
                         data-powermail-error-container=".powermail_field_error_container_{field.marker}"
                         auto="{altchaConfig.configuration.validation}"
                         data-lifetime="{altchaConfig.lifetime}"></altcha-widget>
@@ -41,3 +37,30 @@
         });
     });
 </script>
+<f:if condition="{altchaConfig.langLabels}">
+<script>
+    // Widget v3 has no `strings` attribute anymore. Labels configured in TypoScript are merged
+    // into the widget's i18n store for the language the widget resolves (same resolution as the widget).
+    customElements.whenDefined('altcha-widget').then(function() {
+        var i18n = globalThis.$altcha.i18n;
+        var locales;
+        i18n.store.subscribe(function(value) { locales = value; })();
+        var codes = Object.keys(locales);
+        document.querySelectorAll('altcha-widget[data-altcha-i18n]').forEach(function(widget) {
+            var candidates = [widget.getAttribute('language'), document.documentElement.lang].concat(Array.from(navigator.languages));
+            var locale = null;
+            candidates.forEach(function(candidate) {
+                if (locale || !candidate) {
+                    return;
+                }
+                candidate = candidate.toLowerCase();
+                locale = locales[candidate] ? candidate : (codes.find(function(code) {
+                    return candidate.split('-')[0] === code.split('-')[0];
+                }) || null);
+            });
+            locale = locale && locales[locale] ? locale : 'en';
+            i18n.set(locale, Object.assign({}, locales[locale], JSON.parse(widget.getAttribute('data-altcha-i18n'))));
+        });
+    });
+</script>
+</f:if>

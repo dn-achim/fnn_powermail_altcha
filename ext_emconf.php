@@ -3,7 +3,7 @@
 $EM_CONF[$_EXTKEY] = [
     'title' => 'Altcha Captcha for Powermail',
     'description' => 'Accessible and GDPR compliant proof-of-work (pow) captcha for powermail, no external service required',
-    'version' => '12.0.0',
+    'version' => '13.0.0',
     'category' => 'service',
     'author' => '599media Dev-Team',
     'author_email' => 'info@599media.de',

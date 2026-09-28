@@ -17,7 +17,8 @@ plugin.tx_powermail {
                         indication = 100
                         configuration {
                             hmacKey = {$plugin.tx_fnn_powermail_altcha.hmacKey}
-                            maxNumber = {$plugin.tx_fnn_powermail_altcha.maxNumber}
+                            minimumComplexity = {$plugin.tx_fnn_powermail_altcha.minimumComplexity}
+                            maximumComplexity = {$plugin.tx_fnn_powermail_altcha.maximumComplexity}
                             expires = {$plugin.tx_fnn_powermail_altcha.expires}
                             hideLogo = {$plugin.tx_fnn_powermail_altcha.hideLogo}
                             hideFooter = {$plugin.tx_fnn_powermail_altcha.hidefooter}

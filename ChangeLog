@@ -1,3 +1,9 @@
+v13.0.0 +
+  * Update ALTCHA widget to v3 (3.2.3, bundle with all translations) and altcha-org/altcha to ^2.1
+  * Replace maxNumber by minimumComplexity / maximumComplexity (PBKDF2 cost, randomized per challenge)
+  * Labels now default to the translations shipped with the widget; TypoScript labels are optional overrides
+  * Fix default validation type (onload instead of load)
+
 v12.0.0 +
   * Drop support for TYPO3 v10 and v11
   * Removal of the Altcha library from our source; installation is now done exclusively via Composer.
